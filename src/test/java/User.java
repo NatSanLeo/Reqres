@@ -1,5 +1,22 @@
 public class User{
 	private String createdAt;
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public void setJob(String job) {
+		this.job = job;
+	}
+
+	public void setCreatedAt(String createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	private String name;
 	private String id;
 	private String job;
