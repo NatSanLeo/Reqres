@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "io.qameta.allure" version "2.11.2"
 }
 
 group = 'org.example'
@@ -8,12 +9,49 @@ version = '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
 }
-
+def allureVersion  ="2.25.0"
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.0'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '3.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.22.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.22.1'
+
+    testImplementation group: 'io.qameta.allure',name: 'allure-junit5', version: '2.25.0'
+    testImplementation platform("io.qameta.allure:allure-bom:2.25.0")
+    testImplementation group: 'io.qameta.allure',name: 'allure-rest-assured', version: '2.25.0'
+
+
 }
 
 test {
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
+}
+task loginTest (type: Test){
+    useJUnitPlatform{
+        includeTags('Login')
+    }
+    testLogging.showStandardStreams = true
+
+}
+
+
+task authenticationTest (type: Test){
+    useJUnitPlatform{
+        includeTags('Authentication')
+    }
+    testLogging.showStandardStreams = true
+
+}
+
+task regressionTest (type: Test){
+    useJUnitPlatform{
+        includeTags('Regresion')
+        excludeTags('Authentication')
+    }
+    testLogging.showStandardStreams = true
+
 }
