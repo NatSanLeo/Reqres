@@ -1,3 +1,5 @@
+package models;
+
 public class CreateUserRequest {
     private String email;
     private String password;

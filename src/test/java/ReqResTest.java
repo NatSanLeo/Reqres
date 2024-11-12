@@ -1,21 +1,29 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import conf.Endpoinds;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import models.CreateUserRequest;
+import models.CreateUserResponse;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import tasks.GetSingleUserTest;
+import tasks.RegisterSuccessfulUser;
+import tasks.RegisterUser;
 
 import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.*;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static io.restassured.path.json.JsonPath.from;
+
 @Tag("Regresion")
 public class ReqResTest extends BaseTest {
     private static final Logger logger = LogManager.getLogger(ReqResTest.class);
@@ -33,31 +41,27 @@ public class ReqResTest extends BaseTest {
                         }""")
                 .post("/login")
                 .then()
-                .body("token", notNullValue())
-
-
-        ;
+                .body("token", notNullValue());
 
     }
 
     @Test
     public void getSingleUserTest() {
-        given()
-                .get("/users/2")
-                .then().
-                statusCode(HttpStatus.SC_OK)
-                .body("data.id", equalTo(2))
+        GetSingleUserTest getSingleUserTest = new GetSingleUserTest();
+        var singleUserResponde = getSingleUserTest.byId(2);
+        singleUserResponde.statusCode(SC_OK);
+        singleUserResponde.body("data.id", equalTo(2))
                 .body("data.email", containsStringIgnoringCase("JANET"))
                 .body("data.email", equalToIgnoringCase("janet.weaver@reqres.in"))
-                .body("data.id", greaterThan(1))
-        ;
+                .body("data.id", greaterThan(1));
 
     }
 
     @Test
     public void deleteUserTest() {
         given()
-                .delete("/users/2")
+                .pathParam("userId", 2)
+                .delete(Endpoinds.USERS.path())
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
@@ -73,10 +77,10 @@ public class ReqResTest extends BaseTest {
                             "name": "morpheus",
                             "job": "zion resident"
                         }""")
-                .patch("/users/2")
+                .patch(Endpoinds.USERS.path() + "/2")
 
                 .then()
-                .statusCode(HttpStatus.SC_OK)
+                .statusCode(SC_OK)
                 .extract().jsonPath().getString("name");
         assertThat(nameUpdated, equalTo("morpheus"));
 
@@ -92,10 +96,10 @@ public class ReqResTest extends BaseTest {
                             "name": "morpheus",
                             "job": "zion resident"
                         }""")
-                .put("/users/2")
+                .put(Endpoinds.USERS.path() + "/2")
 
                 .then()
-                .statusCode(HttpStatus.SC_OK)
+                .statusCode(SC_OK)
                 .extract().jsonPath().getString("job");
         assertThat(jobUpdated, equalTo("zion resident"));
 
@@ -109,7 +113,7 @@ public class ReqResTest extends BaseTest {
         String body = response.getBody().asString();
         String contentType = response.getContentType();
 
-        assertThat(statusCode, equalTo(HttpStatus.SC_OK));
+        assertThat(statusCode, equalTo(SC_OK));
         System.out.println("body" + body);
         System.out.println("contentType" + contentType);
         System.out.println("Headers" + headers);
@@ -151,7 +155,7 @@ public class ReqResTest extends BaseTest {
                             "name": "morpheus",
                             "job": "leader"
                         }""")
-                .post("/users").then().extract().body().asString();
+                .post(Endpoinds.USERS.path()).then().extract().body().asString();
         User user = from(response).getObject("", User.class);
 
         System.out.println("ID de usuario: " + user.getId());
@@ -204,7 +208,7 @@ public class ReqResTest extends BaseTest {
 
         CreateUserResponse userResponse = given().when()
                 .body(createUserRequest)
-                .post("/register")
+                .post(Endpoinds.REGISTER.path())
                 .then()
                 .extract()
                 .body()
@@ -215,6 +219,16 @@ public class ReqResTest extends BaseTest {
         System.out.println("id: " + userResponse.getId());
         System.out.println("token: " + userResponse.getToken());
 
+
+    }
+
+    @Test
+    public void createNewUserTest() {
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setEmail("eve.holt@reqrest.in");
+        createUserRequest.setPassword("pistol");
+        RegisterSuccessfulUser registerSuccessfulUser = new RegisterSuccessfulUser();
+        var token = registerSuccessfulUser.withInfo(createUserRequest).getToken();
 
     }
 
